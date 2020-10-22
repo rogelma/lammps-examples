@@ -1,0 +1,66 @@
+# 3d Lennard-Jones
+
+# Define adimentional units
+units		lj
+
+# Simulation type
+atom_style	atomic
+
+# Define periodic boundary conditions in all dimentions
+boundary        p p p
+
+# Define lattice with density 0.1
+lattice		fcc 0.1
+
+# Define simulation box from 0 to 5 in x, y and z
+region		box block 0 5 0 5 0 5
+
+# Single particle type
+create_box	1 box
+
+# Create particles of type 1
+create_atoms	1 box
+
+# Mass of type 1 is unitary
+mass		1 1.0
+
+# Generate initial velocities
+# 12345 is the random seed for the generator, change it to something else
+velocity	all create 2.0 12345
+
+# Use Lennard-Jones potential with 2.5 cutoff radius
+pair_style	table linear 1000
+
+# Interaction between particles of type 1
+# Uses section "LJ" of the table with cutoff 2.5
+pair_coeff	1 1 lj.table LJ 2.5
+
+# Long range corrections
+pair_modify 	tail yes
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+# Calculate instantaneous values
+compute         tt all temp
+compute         pp all pressure tt
+compute         en all pe pair
+
+# Set system in the NVT ensemble with reduced temperature 2.0
+# and damping parameter 1.0
+fix		1 all nvt temp 2.0 2.0 0.1
+
+# Calculate temperature, pressure and potential energy averages
+fix             5 all ave/time 100 5 500 c_tt c_pp c_en file thermodynamics.dat
+
+timestep        0.003
+
+# Print information every 1000 steps
+thermo		1000
+
+# Save positions to file
+dump            1 all custom 500 dumpfile.dat id type x y z
+
+# Run 50k simulation steps
+run 		50000
+
