@@ -1,0 +1,6 @@
+set terminal png
+set output 'RHOxT.png'
+
+set title 'Density X Temperature'
+
+plot 'RHOxT_press_0.20.dat' w l, 'RHOxT_press_0.25.dat' w l, 'RHOxT_press_0.30.dat' w l

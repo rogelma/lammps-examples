@@ -1,0 +1,65 @@
+# Find Temperature of Maximum Density (TMD)
+# using potentials from Franzese 2007 and Alan 2008
+# https://doi.org/10.1016/j.molliq.2007.08.021
+# https://doi.org/10.1063/1.2830706
+#
+# This is a NPT simulation, crossing the TMD curve of Fig 2a
+# at P*=0.25 (Oliveira, 2008). Doing this for various pressures would
+# reconstruct the curve shown in the paper.
+
+log log/lammps_press_${press}_temp_${temp}.log
+
+variable Nthermo equal 1000
+variable Nequil equal 1000000
+
+# Define adimentional units
+units		lj
+
+# Set number of dimensions
+dimension 3
+
+# Simulation type
+atom_style	atomic
+
+# Define periodic boundary conditions in all dimensions
+boundary        p p p
+
+# Define lattice with density 0.2
+lattice		sc 0.2
+
+# Define simulation box from 0 to 5 in x, y and z
+region		box block 0 10 0 10 0 10
+
+# Single particle type
+create_box	1 box
+
+# Create particles of type 1
+create_atoms	1 box
+
+# Mass of type 1 is unitary
+mass		1 1.0
+
+# Generate initial velocities
+velocity	all create ${temp} 874815
+
+# Interaction between particles of type 1
+# Uses section "AA" of the table with cutoff 3.0
+pair_style	table linear 1000
+#pair_coeff	1 1 CSWpot_redunits.dat CSWPot 3.0
+pair_coeff	1 1 force.table AA 3.0
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+timestep 0.002
+
+thermo ${Nthermo}
+thermo_style custom step temp press density vol enthalpy
+
+# By some reason I can't use density directly in ave/time
+variable dens equal density
+
+fix 1 all npt temp ${temp} ${temp} 0.2 iso ${press} ${press} 0.2
+fix 2 all ave/time 1 ${Nthermo} ${Nthermo} v_dens start ${Nequil} file log/density_press_${press}_temp_${temp}.profile
+
+run 1500000
