@@ -1,20 +1,20 @@
 #!/bin/bash
 LANG=en_US
-TEMPERATURES=$(seq 0.30 0.005 1.00)
-PRESSURES="0.20 0.25 0.30"
+TEMPERATURES=$(seq 0.50 0.02 0.90)
+RHOS="0.175 0.180 0.185 0.190 0.200 0.210 0.215 0.220"
+OMP_NUM_THREADS=2
 
-python potential_generate_points.py
+python3 potential_generate_points.py
 
-for press in $PRESSURES
+for rho in $RHOS
 do
 	for temp in $TEMPERATURES
 	do
-		mpirun -np 4 lammps -var temp $temp -var press $press < in.csw
+		mpirun -np 4 lammps -var temp $temp -var rho $rho < in.csw
 	done
 done
 
-# Calculate averages
-python process_data.py
+rm log.lammps
+rm force.table
 
-# Generate plot
-gnuplot RHOxT.gnupot
+python3 process_densities.py
