@@ -1,0 +1,56 @@
+shell mkdir log/
+shell mkdir log/rho/
+shell mkdir log/rho/${rho}
+log log/rho/${rho}/temp_${temp}.log
+
+variable Nthermo equal 1000
+variable Nequil equal 200000
+
+# Define adimentional units
+units		lj
+
+# Set number of dimensions
+dimension 3
+
+# Simulation type
+atom_style	atomic
+
+# Define periodic boundary conditions in all dimensions
+boundary        p p p
+
+# Define lattice with density rho*
+lattice		sc ${rho}
+
+# Define simulation box from 0 to 10 in x, y and z
+region		box block 0 10 0 10 0 10
+
+# Single particle type
+create_box	1 box
+
+# Create particles of type 1
+create_atoms	1 box
+
+# Mass of type 1 is unitary
+mass		1 1.0
+
+# Generate initial velocities
+velocity	all create ${temp} 12345
+
+# Interaction between particles of type 1
+# Uses section "AA" of the table with cutoff 3.0
+pair_style	table linear 1000
+pair_coeff	1 1 force.table AA 3.0
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+timestep 0.002
+
+thermo ${Nthermo}
+thermo_style custom step temp press
+
+# Set fixes
+fix 1 all nvt temp ${temp} ${temp} 0.2
+fix 2 all ave/time 1 ${Nthermo} ${Nthermo} c_thermo_press start ${Nequil} file log/rho/${rho}/temp_${temp}.profile
+
+run 300000
