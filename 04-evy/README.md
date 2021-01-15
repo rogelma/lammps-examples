@@ -1,8 +1,8 @@
 # Franzese potential
 
 This code finds the temperature of maximum density (TMD) for the [potential
-proposed by Salcedo](https://doi.org/10.1016/j.molliq.2007.08.021). All inputs
-and outputs are in reduced units.
+proposed by Salcedo](https://doi.org/10.1063/1.4802006). All inputs and outputs
+are in reduced units.
 
 Potential generation and average calculation are performed using
 [Sympy](https://www.sympy.org/) and [Numpy](https://numpy.org/).
